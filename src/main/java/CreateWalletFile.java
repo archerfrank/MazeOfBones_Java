@@ -16,10 +16,10 @@ public class CreateWalletFile {
     public static void main(String[] args) throws Exception {
 
         Web3j web3j = Web3j.build(new HttpService(
-                "HTTP://127.0.0.1:7545"));  // FIXME: Enter your Infura token here;
+                "https://ropsten.infura.io/v3/17c943beed0447a1be5042589b84ca40"));  // FIXME: Enter your Infura token here;
         System.out.println("Connected to Ethereum client version: "
                 + web3j.web3ClientVersion().send().getWeb3ClientVersion());
-        File f = new File("E:\\Development\\Blockchain");
+        File f = new File("E:\\Development\\blockchain");
 
 
         WalletUtils.generateBip39WalletFromMnemonic(

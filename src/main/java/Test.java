@@ -6,6 +6,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
@@ -28,16 +29,18 @@ public class Test {
     private static final Logger log = LoggerFactory.getLogger(Test.class);
     public static void main(String[] args) throws Exception {
 
+//        Web3j web3j = Web3j.build(new HttpService(
+//                "HTTP://127.0.0.1:7545"));  // FIXME: Enter your Infura token here;
         Web3j web3j = Web3j.build(new HttpService(
-                "HTTP://127.0.0.1:7545"));  // FIXME: Enter your Infura token here;
+                "https://ropsten.infura.io/v3/17c943beed0447a1be5042589b84ca40"));  // FIXME: Enter your Infura token here;
         System.out.println("Connected to Ethereum client version: "
                 + web3j.web3ClientVersion().send().getWeb3ClientVersion());
-        File f = new File("E:\\Development\\Blockchain");
+        File f = new File("E:\\Development\\blockchain");
 
         Credentials credentials =
                 WalletUtils.loadCredentials(
                         "Yang!831127",
-                        "E:\\Development\\Blockchain\\testNet.json");
+                        "E:\\Development\\blockchain\\testNet.json");
 //        WalletUtils.generateBip39WalletFromMnemonic(
 //                        "Yang!831127",
 //                        "hamster journey mountain alien easy girl reward ancient step side blur orient",
@@ -52,15 +55,17 @@ public class Test {
 //        System.out.println("Transaction complete, view it at https://rinkeby.etherscan.io/tx/"
 //                + transferReceipt.getTransactionHash());
 
-        Event event = new Event("Greet", Arrays.asList(
-                new TypeReference<Utf8String>(true) {
-
-                }));
+//        Event event = new Event("Notify", Arrays.asList(
+//                new TypeReference<Utf8String>(true) {
+//
+//                }));
+        final Event event = new Event("Transfer",
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {},new TypeReference<Uint256>() {}));
 
         EthFilter filter = new EthFilter(
                 DefaultBlockParameterName.EARLIEST,
                 DefaultBlockParameterName.LATEST,
-                "0x384Ca431aca4CbfAb257A0c86Ca8A045ec20D8d6");
+                "0xa888Ad80b903FF9c8870474b0FB925Af6578D835");
         filter.addSingleTopic(EventEncoder.encode(event));
         web3j.ethLogFlowable(filter).subscribe((x) -> {System.out.println(x);
             System.out.println(Base64.getDecoder().decode(x.getData()));
