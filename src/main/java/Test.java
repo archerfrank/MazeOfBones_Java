@@ -1,4 +1,3 @@
-import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.abi.EventEncoder;
@@ -6,32 +5,22 @@ import org.web3j.abi.EventValues;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
-import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.EthFilter;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Contract;
-import org.web3j.tx.Transfer;
-import org.web3j.utils.Convert;
 
 import java.io.File;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Base64;
 
-public class Test  {
+public class Test {
     private static final Logger log = LoggerFactory.getLogger(Test.class);
+
     public static void main(String[] args) throws Exception {
 
 //        Web3j web3j = Web3j.build(new HttpService(
@@ -65,16 +54,22 @@ public class Test  {
 //
 //                }));
         final Event event = new Event("AirdropEvent",
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Address>(true) {},
-                        new TypeReference<Uint256>() {}, new TypeReference<Utf8String>() {}, new TypeReference<Utf8String>() {}));
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
+                                                }, new TypeReference<Address>(true) {
+                                                },
+                        new TypeReference<Uint256>() {
+                        }, new TypeReference<Utf8String>() {
+                        }, new TypeReference<Utf8String>() {
+                        }));
 
         EthFilter filter = new EthFilter(
-//                DefaultBlockParameterName.EARLIEST,
-                DefaultBlockParameter.valueOf(BigInteger.valueOf(0xc6f241).add(BigInteger.ONE)),
+                DefaultBlockParameterName.EARLIEST,
+//                DefaultBlockParameter.valueOf(BigInteger.valueOf(0xc6f241).add(BigInteger.ONE)),
                 DefaultBlockParameterName.LATEST,
                 "0x46BeD11D5351dc08b7efB44Fdf8Fa85A7aD4b792");
         filter.addSingleTopic(EventEncoder.encode(event));
-        web3j.ethLogFlowable(filter).subscribe((x) -> {System.out.println(x);
+        web3j.ethLogFlowable(filter).subscribe((x) -> {
+            System.out.println(x);
             System.out.println(x.getData());
             System.out.println(x.getTopics());
             EventValues eventValues = Contract.staticExtractEventParameters(event, x);
