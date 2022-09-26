@@ -1,9 +1,11 @@
 package com.ssb.dtl.db.syncJob.config;
 
+import com.ssb.dtl.db.syncJob.Constants;
 import com.ssb.dtl.db.syncJob.schedule.task.DelayTask;
 import com.ssb.dtl.db.syncJob.schedule.task.TimerQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -17,6 +19,8 @@ public class PropertyEnvironment implements ApplicationListener<ContextRefreshed
     private final ConfigurableEnvironment configurableEnvironment;
     private final TimerQueue timerQueue;
     private static boolean started = false;
+    @Value("${server.port}")
+    private String port;
 
     @Autowired
     public PropertyEnvironment(ConfigurableEnvironment configurableEnvironment,
@@ -31,6 +35,7 @@ public class PropertyEnvironment implements ApplicationListener<ContextRefreshed
      */
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        Constants.port = this.port;
         if(!started) {
             // start the queue consumer
             startDelayQueueDaemon();

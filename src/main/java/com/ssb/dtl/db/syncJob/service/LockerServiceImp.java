@@ -1,6 +1,5 @@
 package com.ssb.dtl.db.syncJob.service;
 
-import com.ssb.dtl.db.syncJob.Constants;
 import com.ssb.dtl.db.syncJob.dao.LockerRepository;
 import com.ssb.dtl.db.syncJob.domain.JobLock;
 import com.ssb.dtl.db.syncJob.schedule.task.DelayTask;
@@ -36,7 +35,7 @@ public class LockerServiceImp {
         boolean res = lockerRepository.tryLock(name);
         if(res) {
             log.info("get lock of {} ", name);
-            DelayTask task = taskFactory.createLockTask(Constants.SYNC_JOB_LOCK, renewFrequency * 1000, false);
+            DelayTask task = taskFactory.createLockTask(name, renewFrequency * 1000, false);
             timerQueue.addTask(task);
         };
         return res;

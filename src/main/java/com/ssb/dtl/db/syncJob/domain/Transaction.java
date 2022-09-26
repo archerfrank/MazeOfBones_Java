@@ -29,4 +29,5 @@ public class Transaction {
     private String toName;
     @CreationTimestamp
     private LocalDateTime createdDate;
+    private String createdBy;
 }

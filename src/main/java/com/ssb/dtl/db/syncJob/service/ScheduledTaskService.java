@@ -1,14 +1,11 @@
 package com.ssb.dtl.db.syncJob.service;
 
 import com.ssb.dtl.db.syncJob.Constants;
-import com.ssb.dtl.db.syncJob.dao.SyncPositionRepository;
+import com.ssb.dtl.db.syncJob.HashAlgorithms;
 import com.ssb.dtl.db.syncJob.domain.Account;
 import com.ssb.dtl.db.syncJob.domain.Transaction;
 import com.ssb.dtl.db.syncJob.schedule.task.TimerQueue;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.internal.subscribers.LambdaSubscriber;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -33,7 +30,6 @@ import org.web3j.tx.Contract;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.Arrays;
 
 @Service
@@ -49,6 +45,10 @@ public class ScheduledTaskService {
     String endpoint;
     @Value(("${config.address.listen}"))
     String addressToListen;
+    @Value(("${config.total.slot}"))
+    int totalSlot;
+    @Value(("${config.my.slot}"))
+    int mySlot;
     @Autowired
     TimerQueue timerQueue;
     @Autowired
@@ -80,8 +80,9 @@ public class ScheduledTaskService {
                 log.info("busy expire lock {} ", lock);
                 lockerServiceImp.release(lock.getName());
             });
+            String lockName = Constants.SYNC_JOB_LOCK + "_" + mySlot;
             log.info("try to get the lock ：" + sdf.format(System.currentTimeMillis()));
-            if (lockerServiceImp.tryLock(Constants.SYNC_JOB_LOCK)) {
+            if (lockerServiceImp.tryLock(lockName)) {
                 log.info("Get the lock");
                 //TODO logic to sync
                 try {
@@ -91,7 +92,7 @@ public class ScheduledTaskService {
                             WalletUtils.loadCredentials(
                                     walletPassword,
                                     walletFile);
-                    long lastPosition = syncService.getLastPosition();
+                    long lastPosition = syncService.getLastPosition(mySlot);
                     log.info("Use wallet address {}, last position is {}", credentials.getAddress(), lastPosition);
                     final Event event = new Event("TransferEvent",
                             Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {
@@ -118,30 +119,35 @@ public class ScheduledTaskService {
                             EventValues eventValues = Contract.staticExtractEventParameters(event, e);
                             String fromAddr = eventValues.getIndexedValues().get(0).getValue().toString();
                             String toAddr = eventValues.getIndexedValues().get(1).getValue().toString();
-                            BigDecimal amount = BigDecimal.valueOf(((BigInteger)eventValues.getNonIndexedValues().get(0).getValue()).longValue());
+                            BigDecimal amount = BigDecimal.valueOf(((BigInteger) eventValues.getNonIndexedValues().get(0).getValue()).longValue());
                             String fromName = eventValues.getNonIndexedValues().get(1).getValue().toString();
                             String toName = eventValues.getNonIndexedValues().get(2).getValue().toString();
                             Boolean airdrop = (Boolean) eventValues.getNonIndexedValues().get(3).getValue();
                             log.info("{},{},{},{},{},{}", fromAddr, toAddr, amount, fromName, toName, airdrop);
-                            if (airdrop){
-                                Account newAccount = Account.builder().address(toAddr).balance(BigDecimal.ZERO)
-                                        .name(toName).build();
-                                try {
-                                    syncService.saveAccount(newAccount);
-                                } catch (Throwable t) {
-                                    log.error(t.getMessage(), t);
+                            int hash = HashAlgorithms.additiveHash(fromAddr, totalSlot);
+                            log.info("hash {},{},{}", hash, mySlot, totalSlot);
+                            if (hash == mySlot) {
+                                if (airdrop) {
+                                    Account newAccount = Account.builder().address(toAddr).balance(BigDecimal.ZERO)
+                                            .name(toName).build();
+                                    try {
+                                        syncService.saveAccount(newAccount);
+                                    } catch (Throwable t) {
+                                        log.error(t.getMessage(), t);
+                                    }
                                 }
+                                Transaction newTrans = Transaction.builder().amount(amount)
+                                        .blockHash(e.getBlockHash())
+                                        .blockNumber(e.getBlockNumber().longValue())
+                                        .fromAddr(fromAddr)
+                                        .fromName(fromName)
+                                        .toAddr(toAddr)
+                                        .toName(toName)
+                                        .transactionHash(e.getTransactionHash())
+                                        .createdBy(Constants.getCurrentIP())
+                                        .build();
+                                syncService.saveTransaction(newTrans);
                             }
-                            Transaction newTrans = Transaction.builder().amount(amount)
-                                    .blockHash(e.getBlockHash())
-                                    .blockNumber(e.getBlockNumber().longValue())
-                                    .fromAddr(fromAddr)
-                                    .fromName(fromName)
-                                    .toAddr(toAddr)
-                                    .toName(toName)
-                                    .transactionHash(e.getTransactionHash())
-                                    .build();
-                            syncService.saveTransaction(newTrans);
                         } catch (Throwable t) {
                             log.error(t.getMessage(), t);
                         }
@@ -149,7 +155,7 @@ public class ScheduledTaskService {
                     Thread.sleep(1000 * 60 * 60 * 24 * 365);
                 } catch (Throwable t){
                     log.error(t.getMessage(), t);
-                    lockerServiceImp.release(Constants.SYNC_JOB_LOCK);
+                    lockerServiceImp.release(lockName);
                 }
             }
         } catch(Throwable t) {

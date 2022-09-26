@@ -26,9 +26,10 @@ public class SyncService {
         syncPositionRepository.updatePosition(trans.getBlockNumber(), 1000L);
 
     }
+
     @Transactional(readOnly = true)
-    public long getLastPosition() {
-        return syncPositionRepository.findById(1000L).map(x -> x.getBlockNumber()).orElse(1000L);
+    public long getLastPosition(long id) {
+        return syncPositionRepository.findById(id).map(x -> x.getBlockNumber()).orElse(1000L);
     }
 
     @Transactional
