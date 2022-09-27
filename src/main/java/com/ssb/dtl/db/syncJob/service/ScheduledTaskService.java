@@ -146,7 +146,7 @@ public class ScheduledTaskService {
                                         .transactionHash(e.getTransactionHash())
                                         .createdBy(Constants.getCurrentIP())
                                         .build();
-                                syncService.saveTransaction(newTrans);
+                                syncService.saveTransaction(newTrans,mySlot);
                             }
                         } catch (Throwable t) {
                             log.error(t.getMessage(), t);

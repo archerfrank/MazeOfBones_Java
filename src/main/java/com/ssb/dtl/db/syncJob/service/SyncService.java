@@ -19,11 +19,11 @@ public class SyncService {
     SyncPositionRepository syncPositionRepository;
 
     @Transactional
-    void saveTransaction(Transaction trans) {
+    void saveTransaction(Transaction trans, long mySlot) {
         accountRepository.updateBalance(trans.getFromAddr(), trans.getAmount().negate());
         accountRepository.updateBalance(trans.getToAddr(), trans.getAmount());
         transactionRepository.save(trans);
-        syncPositionRepository.updatePosition(trans.getBlockNumber(), 1000L);
+        syncPositionRepository.updatePosition(trans.getBlockNumber(), mySlot);
 
     }
 
