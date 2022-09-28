@@ -122,6 +122,7 @@ CREATE TABLE `transaction`  (
   `to_addr` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `to_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `amount` decimal(19, 2) NULL DEFAULT NULL,
+  `block_time` datetime(6) NULL DEFAULT NULL,
   `transaction_hash` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `block_number` bigint(20) NOT NULL,
   `block_hash` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,

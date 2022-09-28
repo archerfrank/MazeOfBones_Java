@@ -5,6 +5,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,6 +28,7 @@ public class Transaction {
     private BigDecimal amount;
     private String fromName;
     private String toName;
+    private Instant blockTime;
     @CreationTimestamp
     private LocalDateTime createdDate;
     private String createdBy;

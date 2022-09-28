@@ -30,6 +30,8 @@ import org.web3j.tx.Contract;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 @Service
@@ -106,6 +108,8 @@ public class ScheduledTaskService {
                                     new TypeReference<Utf8String>() {
                                     },
                                     new TypeReference<Bool>() {
+                                    },
+                                    new TypeReference<Uint256>() {
                                     }));
 
                     EthFilter filter = new EthFilter(
@@ -123,7 +127,8 @@ public class ScheduledTaskService {
                             String fromName = eventValues.getNonIndexedValues().get(1).getValue().toString();
                             String toName = eventValues.getNonIndexedValues().get(2).getValue().toString();
                             Boolean airdrop = (Boolean) eventValues.getNonIndexedValues().get(3).getValue();
-                            log.info("{},{},{},{},{},{}", fromAddr, toAddr, amount, fromName, toName, airdrop);
+                            long time = ((BigInteger) eventValues.getNonIndexedValues().get(4).getValue()).longValue();
+                            log.info("{},{},{},{},{},{},{}", fromAddr, toAddr, amount, fromName, toName, airdrop, time);
                             int hash = HashAlgorithms.additiveHash(fromAddr, totalSlot);
                             log.info("hash {},{},{}", hash, mySlot, totalSlot);
                             if (hash == mySlot) {
@@ -143,6 +148,7 @@ public class ScheduledTaskService {
                                         .fromName(fromName)
                                         .toAddr(toAddr)
                                         .toName(toName)
+                                        .blockTime(Instant.ofEpochSecond(time))
                                         .transactionHash(e.getTransactionHash())
                                         .createdBy(Constants.getCurrentIP())
                                         .build();
