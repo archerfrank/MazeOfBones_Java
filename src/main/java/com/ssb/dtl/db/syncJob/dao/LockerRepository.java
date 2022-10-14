@@ -44,6 +44,13 @@ public class LockerRepository {
         return q.executeUpdate() == 1;
     }
 
+    public boolean releaseBusyLock(JobLock lock) {
+        Query q = em.createNativeQuery("update job_lock set status = 'NEW', updated_at = current_timestamp where name = ? and updated_at = ?");
+        q.setParameter(1, lock.getName());
+        q.setParameter(2, lock.getUpdatedAt());
+        return q.executeUpdate() == 1;
+    }
+
     public List<JobLock> getBusyLocker(){
         Query q = em.createNamedQuery("query_get_all_busy_locker", JobLock.class);
         return q.getResultList();

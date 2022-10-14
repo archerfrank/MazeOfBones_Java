@@ -80,7 +80,7 @@ public class ScheduledTaskService {
         try {
             lockerServiceImp.queryOldBusyLock().forEach(lock -> {
                 log.info("busy expire lock {} ", lock);
-                lockerServiceImp.release(lock.getName());
+                lockerServiceImp.releaseBusyLock(lock);
             });
             String lockName = Constants.SYNC_JOB_LOCK + "_" + mySlot;
             log.info("try to get the lock ：" + sdf.format(System.currentTimeMillis()));

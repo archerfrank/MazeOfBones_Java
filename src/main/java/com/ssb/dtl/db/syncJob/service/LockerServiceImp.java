@@ -52,6 +52,16 @@ public class LockerServiceImp {
         return lockerRepository.release(name);
     }
 
+    @Transactional
+    public boolean releaseBusyLock(JobLock lock) {
+        log.info("release busy lock of {} ", lock.getName());
+        DelayTask task = DelayTask.map.get(lock.getName());
+        if (task !=  null){
+            task.taskCompleted();
+        }
+        return lockerRepository.releaseBusyLock(lock);
+    }
+
     @Transactional List<JobLock> queryOldBusyLock() {
         return lockerRepository.getBusyLocker().stream().peek(x -> log.info("Busy lock {}", x)).filter(
                 x -> x.getUpdatedAt().isBefore(OffsetDateTime.now().minusSeconds(busyExpire)))
